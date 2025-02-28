@@ -13,10 +13,13 @@ def ping(url: str):
     try:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
             sock.settimeout(2)
+
             start_time = time.time()
             sock.connect((url, 80))
             end_time = time.time()
+
             typer.echo(f"Connection established in {end_time-start_time:.3f}s")
+
     except socket.timeout:
         typer.echo("Connection timed out")
     except socket.gaierror as e:
@@ -33,9 +36,11 @@ def test_api(url: str):
         start_time = time.time()
         resp = httpx.get(url, timeout=5)
         end_time = time.time()
+
         typer.echo(
             f"Status: {resp.status_code}, Latency: {end_time-start_time:.3f}s"
         )
+
     except httpx.TimeoutException:
         typer.echo("Request timed out")
     except httpx.ConnectError as e:
@@ -57,6 +62,7 @@ def dns_check(domain: str):
 
         typer.echo(f"DNS resolved in {end_time-start_time:.3f}s")
         typer.echo(f"IP address: {res[0]}")
+
     except dns.resolver.NXDOMAIN:
         typer.echo(f"Domain {domain} does not exist")
     except dns.resolver.NoAnswer:
@@ -67,6 +73,36 @@ def dns_check(domain: str):
         typer.echo("DNS query timed out")
     except Exception as e:
         typer.echo(f"An unexpected error occurred: {e}")
+
+
+@app.command()
+def monitor(host: str, port: int = 80, count: int = 10, interval: float = 1.0):
+    success_attempts = failed_attempts = total_letancy = 0
+    for i in range(count):
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+                sock.settimeout(2)
+
+                start_time = time.time()
+                sock.connect((host, port))
+                end_time = time.time()
+
+                typer.echo(
+                    f"Attempt [{i+1}/{count}]: Connected in {end_time-start_time:.3f}s"
+                )
+
+            success_attempts += 1
+            total_letancy += end_time - start_time
+
+        except socket.timeout or socket.gaierror or ConnectionRefusedError:
+            typer.echo(f"Attempt [{i+1}/{count}]: Failed")
+
+            failed_attempts += 1
+
+        time.sleep(interval)
+
+    typer.echo(f"Success Rate: {(success_attempts/count)*100}%")
+    typer.echo(f"Average Letancy: {total_letancy/success_attempts:.3f}s")
 
 
 if __name__ == "__main__":
