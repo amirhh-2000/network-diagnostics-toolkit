@@ -76,8 +76,8 @@ def dns_check(domain: str):
 
 
 @app.command()
-def monitor(host: str, port: int = 80, count: int = 10, interval: float = 1.0):
-    success_attempts = failed_attempts = total_letancy = 0
+def monitor(host: str, port: int = 80, count: int = 5, interval: float = 1.0):
+    success_attempts = failed_attempts = total_latency = 0
     for i in range(count):
         try:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
@@ -92,17 +92,23 @@ def monitor(host: str, port: int = 80, count: int = 10, interval: float = 1.0):
                 )
 
             success_attempts += 1
-            total_letancy += end_time - start_time
+            total_latency += end_time - start_time
 
-        except socket.timeout or socket.gaierror or ConnectionRefusedError:
+        except (socket.timeout, socket.gaierror, ConnectionRefusedError):
             typer.echo(f"Attempt [{i+1}/{count}]: Failed")
-
             failed_attempts += 1
+        except Exception as e:
+            # TODO: log it
+            failed_attempts += 1
+            typer.echo(f"An unexpected error occurred: {e}")
 
         time.sleep(interval)
 
     typer.echo(f"Success Rate: {(success_attempts/count)*100}%")
-    typer.echo(f"Average Letancy: {total_letancy/success_attempts:.3f}s")
+    try:
+        typer.echo(f"Average Latency: {total_latency/success_attempts:.3f}s")
+    except ZeroDivisionError:
+        typer.echo("Average Latency: N/A")
 
 
 if __name__ == "__main__":
