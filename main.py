@@ -195,7 +195,8 @@ def generate_report(
         f"DNS Check: Resolved {domain} to 142.250.190.14 in {report['dns-check']['latency']:.3f}s"
     )
     typer.echo(
-        f"Monitor: Success Rate 80% for {domain}, Average Latency {report['monitor']['average_latency']:.3f}s"
+        f"Monitor: Success Rate {report['monitor']['success_rate']}% \
+for {domain}, Average Latency {report['monitor']['average_latency']:.3f}s"
     )
 
     typer.echo(f"JSON Report:\n{json.dumps(report, indent=4)}")
