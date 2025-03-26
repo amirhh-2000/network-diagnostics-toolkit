@@ -37,15 +37,18 @@ def ping(host: str, quiet: bool = False) -> dict | None:
 
 
 @app.command()
-def test_api(url: str, quiet: bool = False):
+def api_check(url: str, quiet: bool = False) -> dict | None:
     try:
         start_time = time.time()
         resp = httpx.get(url, timeout=5)
         end_time = time.time()
+        
+        if not quiet:
+            typer.echo(
+                f"Status: {resp.status_code}, Latency: {end_time-start_time:.3f}s"
+            )
 
-        typer.echo(
-            f"Status: {resp.status_code}, Latency: {end_time-start_time:.3f}s"
-        )
+        return {"url": url, "status_code": resp.status_code, "latency": end_time-start_time}
 
     except httpx.TimeoutException:
         typer.echo("Request timed out")
