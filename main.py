@@ -6,6 +6,7 @@ from pathlib import Path
 import dns.resolver
 import httpx
 import typer
+from typer import Option
 
 app = typer.Typer()
 
@@ -165,7 +166,18 @@ def _save_report(report: dict):
 
 @app.command()
 def generate_report(
-    host: str, url: str, domain: str, save_to_file: bool = False
+    host: str = Option(
+        ..., "--host", help="Host to ping and monitor (e.g., google.com)"
+    ),
+    url: str = Option(
+        ..., "--url", help="URL to test API (e.g., https://api.github.com)"
+    ),
+    domain: str = Option(
+        ..., "--domain", help="Domain to check DNS (e.g., google.com)"
+    ),
+    save_to_file: bool = Option(
+        False, "--output-file", help="Save report to a JSON file"
+    ),
 ):
     report = {
         "ping": ping(host, quiet=True),
