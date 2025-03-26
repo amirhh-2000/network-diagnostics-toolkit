@@ -21,10 +21,10 @@ def ping(host: str, quiet: bool = False) -> dict | None:
             end_time = time.time()
             latency = end_time - start_time
 
-            result = {"host": host, "latency": latency}
             if not quiet:
                 typer.echo(f"Connection established in {latency:.3f}s")
-            return result
+
+            return {"host": host, "latency": latency}
 
     except socket.timeout:
         typer.echo("Connection timed out")
@@ -42,13 +42,17 @@ def api_check(url: str, quiet: bool = False) -> dict | None:
         start_time = time.time()
         resp = httpx.get(url, timeout=5)
         end_time = time.time()
-        
+
         if not quiet:
             typer.echo(
                 f"Status: {resp.status_code}, Latency: {end_time-start_time:.3f}s"
             )
 
-        return {"url": url, "status_code": resp.status_code, "latency": end_time-start_time}
+        return {
+            "url": url,
+            "status_code": resp.status_code,
+            "latency": end_time - start_time,
+        }
 
     except httpx.TimeoutException:
         typer.echo("Request timed out")
