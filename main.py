@@ -96,7 +96,13 @@ def dns_check(domain: str, quiet: bool = False) -> dict | None:
 
 
 @app.command()
-def monitor(host: str, port: int = 80, count: int = 5, interval: float = 1.0):
+def monitor(
+    host: str,
+    port: int = 80,
+    count: int = 5,
+    interval: float = 1.0,
+    quiet: bool = False,
+):
     success_attempts = failed_attempts = total_latency = 0
     for i in range(count):
         try:
@@ -107,15 +113,17 @@ def monitor(host: str, port: int = 80, count: int = 5, interval: float = 1.0):
                 sock.connect((host, port))
                 end_time = time.time()
 
-                typer.echo(
-                    f"Attempt [{i+1}/{count}]: Connected in {end_time-start_time:.3f}s"
-                )
+                if not quiet:
+                    typer.echo(
+                        f"Attempt [{i+1}/{count}]: Connected in {end_time-start_time:.3f}s"
+                    )
 
             success_attempts += 1
             total_latency += end_time - start_time
 
         except (socket.timeout, socket.gaierror, ConnectionRefusedError):
-            typer.echo(f"Attempt [{i+1}/{count}]: Failed")
+            if not quiet:
+                typer.echo(f"Attempt [{i+1}/{count}]: Failed")
             failed_attempts += 1
         except Exception as e:
             # TODO: log it
@@ -129,6 +137,13 @@ def monitor(host: str, port: int = 80, count: int = 5, interval: float = 1.0):
         typer.echo(f"Average Latency: {total_latency/success_attempts:.3f}s")
     except ZeroDivisionError:
         typer.echo("Average Latency: N/A")
+
+    return {
+        "success_rate": (success_attempts / count) * 100,
+        "average_latency": total_latency / success_attempts
+        if success_attempts > 0
+        else None,
+    }
 
 
 def _save_report(report: dict):
