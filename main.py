@@ -164,32 +164,26 @@ def _save_report(report: dict):
 
 
 @app.command()
-def generate_report(save_to_file: bool = False):
+def generate_report(
+    host: str, url: str, domain: str, save_to_file: bool = False
+):
     report = {
-        "ping": {"host": "google.com", "latency": 0.045},
-        "test-api": {
-            "url": "https://api.github.com",
-            "status": 200,
-            "latency": 0.245,
-        },
-        "dns-check": {
-            "domain": "google.com",
-            "ips": ["142.250.190.14"],
-            "latency": 0.023,
-        },
-        "monitor": {
-            "host": "google.com",
-            "success_rate": 80,
-            "avg_latency": 0.046,
-        },
+        "ping": ping(host, quiet=True),
+        "api-check": api_check(url, quiet=True),
+        "dns-check": dns_check(domain, quiet=True),
+        "monitor": monitor(domain, quiet=True),
     }
 
     typer.echo("=== Network Diagnostics Report ===")
-    typer.echo("Ping: Connected to google.com in 0.045s")
-    typer.echo("Test API: Status 200 for https://api.github.com in 0.245s")
-    typer.echo("DNS Check: Resolved google.com to 142.250.190.14 in 0.023s")
+    typer.echo(f"Ping: Connected to {host} in {report['ping']['latency']}s")
     typer.echo(
-        "Monitor: Success Rate 80% for google.com, Average Latency 0.046s"
+        f"API Check: Status 200 for {url} in {report['api-check']['latency']}s"
+    )
+    typer.echo(
+        f"DNS Check: Resolved {domain} to 142.250.190.14 in {report['dns-check']['latency']}s"
+    )
+    typer.echo(
+        f"Monitor: Success Rate 80% for {domain}, Average Latency {report['monitor']['average_latency']}s"
     )
 
     typer.echo(f"JSON Report:\n{json.dumps(report, indent=4)}")
