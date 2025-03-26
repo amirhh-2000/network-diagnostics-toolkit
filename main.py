@@ -65,7 +65,7 @@ def api_check(url: str, quiet: bool = False) -> dict | None:
 
 
 @app.command()
-def dns_check(domain: str):
+def dns_check(domain: str, quiet: bool = False) -> dict | None:
     resolver = dns.resolver.Resolver()
 
     try:
@@ -73,8 +73,15 @@ def dns_check(domain: str):
         res = resolver.resolve(domain, "A")
         end_time = time.time()
 
-        typer.echo(f"DNS resolved in {end_time-start_time:.3f}s")
-        typer.echo(f"IP address: {res[0]}")
+        if not quiet:
+            typer.echo(f"DNS resolved in {end_time-start_time:.3f}s")
+            typer.echo(f"IP address: {res[0]}")
+
+        return {
+            "domain": domain,
+            "ip": str(res[0]),
+            "latency": end_time - start_time,
+        }
 
     except dns.resolver.NXDOMAIN:
         typer.echo(f"Domain {domain} does not exist")
