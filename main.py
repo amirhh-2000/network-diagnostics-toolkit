@@ -176,7 +176,7 @@ def generate_report(
         ..., "--domain", help="Domain to check DNS (e.g., google.com)"
     ),
     save_to_file: bool = Option(
-        False, "--output-file", help="Save report to a JSON file"
+        False, "--save-to-file", help="Save report to a JSON file"
     ),
 ):
     report = {
@@ -187,15 +187,15 @@ def generate_report(
     }
 
     typer.echo("=== Network Diagnostics Report ===")
-    typer.echo(f"Ping: Connected to {host} in {report['ping']['latency']}s")
+    typer.echo(f"Ping: Connected to {host} in {report['ping']['latency']:.3f}s")
     typer.echo(
-        f"API Check: Status 200 for {url} in {report['api-check']['latency']}s"
+        f"API Check: Status 200 for {url} in {report['api-check']['latency']:.3f}s"
     )
     typer.echo(
-        f"DNS Check: Resolved {domain} to 142.250.190.14 in {report['dns-check']['latency']}s"
+        f"DNS Check: Resolved {domain} to 142.250.190.14 in {report['dns-check']['latency']:.3f}s"
     )
     typer.echo(
-        f"Monitor: Success Rate 80% for {domain}, Average Latency {report['monitor']['average_latency']}s"
+        f"Monitor: Success Rate 80% for {domain}, Average Latency {report['monitor']['average_latency']:.3f}s"
     )
 
     typer.echo(f"JSON Report:\n{json.dumps(report, indent=4)}")
