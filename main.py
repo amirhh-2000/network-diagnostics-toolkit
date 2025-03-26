@@ -11,29 +11,33 @@ app = typer.Typer()
 
 
 @app.command()
-def ping(url: str):
+def ping(host: str, quiet: bool = False) -> dict | None:
     try:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
             sock.settimeout(2)
 
             start_time = time.time()
-            sock.connect((url, 80))
+            sock.connect((host, 80))
             end_time = time.time()
+            latency = end_time - start_time
 
-            typer.echo(f"Connection established in {end_time-start_time:.3f}s")
+            result = {"host": host, "latency": latency}
+            if not quiet:
+                typer.echo(f"Connection established in {latency:.3f}s")
+            return result
 
     except socket.timeout:
         typer.echo("Connection timed out")
     except socket.gaierror as e:
-        typer.echo(f"Failed to resolve {url}: {e}")
+        typer.echo(f"Failed to resolve {host}: {e}")
     except ConnectionRefusedError:
-        typer.echo(f"Connection refused by {url} (port closed)")
+        typer.echo(f"Connection refused by {host} (port closed)")
     except Exception as e:
         typer.echo(f"An unexpected error occurred: {e}")
 
 
 @app.command()
-def test_api(url: str):
+def test_api(url: str, quiet: bool = False):
     try:
         start_time = time.time()
         resp = httpx.get(url, timeout=5)
